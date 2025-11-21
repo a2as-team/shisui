@@ -1,0 +1,34 @@
+# Shisui - Learning Assistant
+
+# Backend (Python/FastAPI)
+Shisui-backend/
+*.pyc
+__pycache__/
+venv/
+.env
+*.db
+*.sqlite
+reports/*.pdf
+
+# Frontend (Next.js)
+shisui/node_modules/
+shisui/.next/
+shisui/out/
+shisui/.env*.local
+shisui/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Specs (optional - uncomment if you want to exclude)
+# specs/
