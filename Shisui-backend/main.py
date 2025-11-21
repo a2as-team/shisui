@@ -108,7 +108,7 @@ async def chat(request: ChatRequest):
                             'agent_display': current_agent_display
                         }
                         yield f"data: {json.dumps(agent_data)}\n\n"
-                        logger.info(f"🤖 Sub-agent working: {current_agent_display}")
+                        logger.info(f" Sub-agent working: {current_agent_display}")
 
                 # Handle content and tool calls
                 if event.content and event.content.parts:
@@ -120,7 +120,7 @@ async def chat(request: ChatRequest):
                                 'tool_name': tool_name
                             }
                             yield f"data: {json.dumps(tool_data)}\n\n"
-                            logger.info(f"🔧 Tool call detected: {tool_name}")
+                            logger.info(f" Tool call detected: {tool_name}")
                         
                         elif hasattr(part, 'text') and part.text and event.partial:
                             content = part.text
