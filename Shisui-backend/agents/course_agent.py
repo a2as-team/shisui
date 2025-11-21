@@ -1,0 +1,42 @@
+from google.adk.agents import Agent
+from google.adk.tools import FunctionTool
+from tools.search_tool import get_search_tool
+from tools.timer_tool import get_timer_tool
+
+def search_course_material(query: str) -> str:
+    """Search for course materials and study resources"""
+    import json
+    search_tool = get_search_tool()
+    result = search_tool(query) # search_tool is the function search_perplexity
+    return json.dumps(result)
+
+def set_study_timer(minutes: int, topic: str) -> str:
+    """Set a study timer for a specific topic"""
+    import json
+    timer_tool = get_timer_tool()
+    result = timer_tool(minutes, topic)
+    return json.dumps(result)
+
+course_agent = Agent(
+    name="course_agent",
+    model="gemini-1.5-flash",
+    description="Specialist agent for researching course materials and managing study sessions",
+    instruction="""You are the Course Agent, a specialist in finding study materials and managing study time.
+
+**Your Responsibilities:**
+1.  **Research**: Find high-quality, relevant study materials using the web search tool.
+    -   When asked about a topic, use `search_course_material`.
+    -   Always provide citations from the search results.
+2.  **Time Management**: Help students manage their study sessions.
+    -   When asked to set a timer or start studying, use `set_study_timer`.
+    -   Encourage focused study blocks (e.g., Pomodoro).
+
+**Tool Usage:**
+-   Announce your action before using a tool (e.g., "I'll search for materials on quantum physics...").
+-   Return structured results to the Planner Agent.
+""",
+    tools=[
+        FunctionTool(search_course_material),
+        FunctionTool(set_study_timer)
+    ]
+)
