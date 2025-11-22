@@ -2,6 +2,7 @@ from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from tools.search_tool import get_search_tool
 from tools.timer_tool import get_timer_tool
+from tools.schedule_tool import get_schedule_tool
 from config.model_config import gemini_flash_model
 
 
@@ -26,6 +27,13 @@ def set_study_timer(minutes: int, topic: str) -> str:
     result = timer_tool(minutes, topic)
     return json.dumps(result)
 
+def create_schedule(tasks: list) -> str:
+    """Create a study schedule with a list of tasks (time and activity)"""
+    import json
+    schedule_tool = get_schedule_tool()
+    result = schedule_tool(tasks)
+    return json.dumps(result)
+
 course_agent = Agent(
     name="course_agent",
     model=gemini_flash_model,
@@ -38,6 +46,7 @@ course_agent = Agent(
     -   Always provide citations from the search results.
 2.  **Time Management**: Help students manage their study sessions.
     -   When asked to set a timer or start studying, use `set_study_timer`.
+    -   When asked to create a schedule or plan a study day, use `create_schedule`.
     -   Encourage focused study blocks (e.g., Pomodoro).
 
 **Tool Usage:**
@@ -46,6 +55,7 @@ course_agent = Agent(
 """,
     tools=[
         FunctionTool(search_course_material),
-        FunctionTool(set_study_timer)
+        FunctionTool(set_study_timer),
+        FunctionTool(create_schedule)
     ]
 )

@@ -162,6 +162,16 @@ async def chat(request: ChatRequest):
                                     }
                                     yield f"data: {json.dumps(timer_event)}\n\n"
                                     logger.info(f"⏱️ Timer started: {response_data.get('duration_minutes')} min")
+
+                                # Handle Schedule
+                                if response_data.get('action') == 'set_schedule':
+                                    schedule_event = {
+                                        'type': 'schedule_set',
+                                        'schedule': response_data.get('schedule'),
+                                        'message': response_data.get('message')
+                                    }
+                                    yield f"data: {json.dumps(schedule_event)}\n\n"
+                                    logger.info(f"📅 Schedule created with {len(response_data.get('schedule', []))} items")
                                 
                                 # Handle Citations (Buffer them)
                                 if response_data.get('citations'):

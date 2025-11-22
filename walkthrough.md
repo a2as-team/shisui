@@ -1,57 +1,37 @@
-# Walkthrough - Message Duplication Fix
+# Walkthrough - Schedule Feature Implementation
 
-I have fixed the issue where messages were being duplicated in the chat interface.
+I have implemented a new scheduling feature that allows the Course Agent to create and display study schedules for the user.
 
 ## Changes
 
-### Frontend (`shisui/app/page.tsx`)
+### Backend
 
-The issue was caused by how the chat component handled incoming Server-Sent Events (SSE) for message content. It was accumulating the entire message history in a way that caused conflicts when tool calls occurred, leading to duplicated text.
+1.  **New Tool (`tools/schedule_tool.py`)**:
+    -   Created `create_study_schedule` tool that accepts a list of tasks (time and activity) and returns a structured response with action `set_schedule`.
 
-I updated the `content` event handler to:
-1.  Check if the last message in the state is an `assistant` message.
-2.  If it is, append the new content chunk to it.
-3.  If not (e.g., the last message was a tool indicator), create a new `assistant` message.
+2.  **Agent Update (`agents/course_agent.py`)**:
+    -   Added `create_schedule` wrapper function.
+    -   Updated `course_agent` instructions to use this tool for planning study days.
+    -   Added the tool to the agent's tool list.
 
-```typescript
-// shisui/app/page.tsx
+3.  **Event Handling (`main.py`)**:
+    -   Updated the chat loop to detect `set_schedule` action.
+    -   Emits a new `schedule_set` SSE event to the frontend.
 
-case 'content':
-  // Append content to assistant message
-  setMessages((prev) => {
-    const newMessages = [...prev];
-    const lastMsg = newMessages[newMessages.length - 1];
+### Frontend
 
-    if (lastMsg && lastMsg.role === 'assistant') {
-      // Update existing assistant message
-      const updatedMsg = {
-        ...lastMsg,
-        content: lastMsg.content + event.content,
-        agentName: event.agent_name || lastMsg.agentName,
-        agentDisplay: event.agent_display || lastMsg.agentDisplay
-      };
-      newMessages[newMessages.length - 1] = updatedMsg;
-      return newMessages;
-    } else {
-      // Create new assistant message (e.g. after tool call)
-      const newMsg: Message = {
-        role: 'assistant',
-        content: event.content,
-        agentName: event.agent_name || currentAgentName || undefined,
-        agentDisplay: event.agent_display || currentAgentDisplay || undefined
-      };
-      return [...newMessages, newMsg];
-    }
-  });
-  break;
-```
+1.  **New Component (`shisui/app/components/Schedule.tsx`)**:
+    -   Created a visual component to display the list of scheduled tasks.
+    -   Styled consistently with the existing Timer component.
 
-### Backend (`Shisui-backend/main.py`)
-
-I added temporary debug logs to investigate the issue and confirmed that the backend was sending the correct events. These logs have been removed to keep the code clean.
+2.  **Page Update (`shisui/app/page.tsx`)**:
+    -   Added `activeSchedule` state.
+    -   Added handler for `schedule_set` event.
+    -   Added the `Schedule` component overlay to the UI.
 
 ## Verification
 
-The fix ensures that:
--   Standard text responses are streamed correctly without duplication.
--   Responses following a tool call (like setting a timer) are appended as new messages or continuations as appropriate, preventing the "overwrite" behavior that led to duplication.
+To verify this feature:
+1.  Ask the agent: "Create a study schedule for learning Python today."
+2.  The Course Agent should use the `create_schedule` tool.
+3.  A schedule card should appear in the bottom-left corner of the screen with the proposed tasks.

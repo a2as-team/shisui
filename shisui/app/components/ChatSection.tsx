@@ -135,6 +135,17 @@ const ChatSection: React.FC<ChatSectionProps> = ({
                     <div className="space-y-8">
                         {groupedMessages.map((item, index) => {
                             if ('isGroup' in item) {
+                                // Don't wrap planner agent messages
+                                if (item.agentName === 'planner_agent') {
+                                    return (
+                                        <div key={index} className="space-y-4">
+                                            {item.messages.map((message, msgIndex) => (
+                                                <MessageRenderer key={msgIndex} message={message} index={msgIndex} />
+                                            ))}
+                                        </div>
+                                    );
+                                }
+
                                 return (
                                     <AgentResponseWrapper
                                         key={index}

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import ChatSection from './components/ChatSection';
 import Timer from './components/Timer';
+import Schedule from './components/Schedule';
 
 interface Message {
   role: 'user' | 'assistant' | 'tool-indicator' | 'agent-working';
@@ -20,11 +21,17 @@ interface TimerData {
   message: string;
 }
 
+interface ScheduleData {
+  schedule: { time: string; activity: string }[];
+  message: string;
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<string | null>(null);
   const [activeTimer, setActiveTimer] = useState<TimerData | null>(null);
+  const [activeSchedule, setActiveSchedule] = useState<ScheduleData | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleSendMessage = async (text: string) => {
@@ -140,6 +147,14 @@ export default function Home() {
                 });
                 break;
 
+              case 'schedule_set':
+                // Handle schedule set event
+                setActiveSchedule({
+                  schedule: event.schedule,
+                  message: event.message
+                });
+                break;
+
               case 'citations':
                 // Handle citations event
                 assistantMessage.citations = event.citations;
@@ -194,6 +209,16 @@ export default function Home() {
             durationMinutes={activeTimer.durationMinutes}
             label={activeTimer.label}
             onComplete={() => setActiveTimer(null)}
+          />
+        </div>
+      )}
+
+      {/* Schedule Overlay */}
+      {activeSchedule && (
+        <div className="fixed bottom-6 left-6 z-50 animate-in slide-in-from-bottom-4">
+          <Schedule
+            schedule={activeSchedule.schedule}
+            onClose={() => setActiveSchedule(null)}
           />
         </div>
       )}
