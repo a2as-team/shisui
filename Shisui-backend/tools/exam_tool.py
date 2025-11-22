@@ -1,6 +1,6 @@
 import os
 import json
-import google.generativeai as genai
+# import google.generativeai as genai # Removed in favor of OpenRouter
 from typing import Dict, Any, List
 from datetime import datetime
 import markdown2
@@ -202,12 +202,7 @@ def _generate_pdf_report(content: str, title: str = "Exam") -> str:
         print(f"Error generating PDF: {e}")
         return ""
 
-def _get_model():
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY not found in environment variables")
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-1.5-flash')
+from services.openrouter_service import ask_openrouter
 
 def generate_test(topic: str, difficulty: str = "medium", num_questions: int = 5) -> Dict[str, Any]:
     """
@@ -221,8 +216,6 @@ def generate_test(topic: str, difficulty: str = "medium", num_questions: int = 5
     Returns:
         Dictionary containing the test questions and PDF URL
     """
-    model = _get_model()
-    
     prompt = f"""
     Generate a {num_questions}-question test on "{topic}" with {difficulty} difficulty.
     Return ONLY a JSON object with this structure:
@@ -241,8 +234,16 @@ def generate_test(topic: str, difficulty: str = "medium", num_questions: int = 5
     """
     
     try:
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-        test_data = json.loads(response.text)
+        # Use OpenRouter instead of Google SDK
+        response_text = ask_openrouter(
+            question=prompt,
+            model="google/gemini-2.5-flash",
+            system_prompt="You are an expert exam creator. You MUST return valid JSON only. Do not wrap in markdown code blocks."
+        )
+        
+        # Clean up response if it contains markdown code blocks
+        cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
+        test_data = json.loads(cleaned_text)
         
         # Convert test data to Markdown for PDF
         markdown_content = f"# {test_data.get('title', 'Exam')}\n\n"
@@ -272,8 +273,6 @@ def evaluate_answer(question: str, user_answer: str, correct_answer: str) -> Dic
     """
     Evaluates a user's answer.
     """
-    model = _get_model()
-    
     prompt = f"""
     Question: {question}
     Correct Answer: {correct_answer}
@@ -287,8 +286,14 @@ def evaluate_answer(question: str, user_answer: str, correct_answer: str) -> Dic
     """
     
     try:
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-        return json.loads(response.text)
+        response_text = ask_openrouter(
+            question=prompt,
+            model="google/gemini-2.5-flash",
+            system_prompt="You are a strict grader. Return valid JSON only."
+        )
+        
+        cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
+        return json.loads(cleaned_text)
     except Exception as e:
         return {"error": f"Failed to evaluate: {str(e)}"}
 

@@ -14,6 +14,8 @@ from google.adk.sessions import InMemorySessionService
 from google.genai.types import Content, Part
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from agents.planner_agent import planner_agent
+from tools.database_tool import init_db, log_interaction
+
 
 # Load environment variables
 load_dotenv()
@@ -42,6 +44,16 @@ app.mount("/reports", StaticFiles(directory=REPORTS_DIR), name="reports")
 
 # Initialize session service
 session_service = InMemorySessionService()
+
+# Initialize database (DISABLED - uncomment when MySQL is set up)
+# try:
+#     logger.info("Initializing database connection...")
+#     init_db()
+#     logger.info("✓ Database initialized successfully")
+# except Exception as e:
+#     logger.error(f"✗ Database initialization failed: {e}")
+#     logger.warning("App will continue but database features may not work")
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -84,6 +96,8 @@ async def chat(request: ChatRequest):
 
             current_agent_name = None
             current_agent_display = None
+            full_response = ""  # Collect full response for database logging
+            pending_citations = [] # Buffer for citations
 
             async for event in runner.run_async(
                 user_id=request.user_id,
@@ -91,24 +105,32 @@ async def chat(request: ChatRequest):
                 new_message=Content(role='user', parts=[Part(text=request.message)]),
                 run_config=RunConfig(streaming_mode=StreamingMode.SSE),
             ):
-                # Check for agent delegation
-                if hasattr(event, 'author') and event.author != 'planner_agent':
-                    agent_author_str = event.author.lower()
-                    if 'course' in agent_author_str:
-                        current_agent_name = 'course'
-                        current_agent_display = 'Course Agent'
-                    elif 'exam' in agent_author_str:
-                        current_agent_name = 'exam'
-                        current_agent_display = 'Exam Agent'
-                    
-                    if current_agent_name:
-                        agent_data = {
-                            'type': 'agent_working',
-                            'agent_name': current_agent_name,
-                            'agent_display': current_agent_display
+                # Handle agent switching
+                # Check if event has author attribute (it should for agent turns)
+                if hasattr(event, 'author') and event.author:
+                    # If author changed, update current agent
+                    if event.author != current_agent_name:
+                        current_agent_name = event.author
+                        
+                        # Map internal name to display name
+                        display_map = {
+                            "planner_agent": "Planner Agent",
+                            "course_agent": "Course Agent",
+                            "exam_agent": "Exam Agent",
+                            "user": "User"
                         }
-                        yield f"data: {json.dumps(agent_data)}\n\n"
-                        logger.info(f" Sub-agent working: {current_agent_display}")
+                        
+                        # Only notify if it's an agent (not user)
+                        if current_agent_name != "user":
+                            current_agent_display = display_map.get(current_agent_name, current_agent_name)
+                            
+                            agent_data = {
+                                'type': 'agent_working',
+                                'agent_name': current_agent_name,
+                                'agent_display': current_agent_display
+                            }
+                            yield f"data: {json.dumps(agent_data)}\n\n"
+                            logger.info(f"🤖 Sub-agent working: {current_agent_display}")
 
                 # Handle content and tool calls
                 if event.content and event.content.parts:
@@ -120,10 +142,38 @@ async def chat(request: ChatRequest):
                                 'tool_name': tool_name
                             }
                             yield f"data: {json.dumps(tool_data)}\n\n"
-                            logger.info(f" Tool call detected: {tool_name}")
+                            logger.info(f"🔧 Tool call detected: {tool_name}")
+                        
+                        # Check for function response (tool results)
+                        elif hasattr(part, 'function_response') and part.function_response:
+                            func_response = part.function_response
+                            
+                            # Check if it's a timer response
+                            try:
+                                response_data = json.loads(func_response.response.get('result', '{}'))
+                                
+                                # Handle Timer
+                                if response_data.get('action') == 'start_timer':
+                                    timer_event = {
+                                        'type': 'timer_start',
+                                        'duration_minutes': response_data.get('duration_minutes'),
+                                        'label': response_data.get('label'),
+                                        'message': response_data.get('message')
+                                    }
+                                    yield f"data: {json.dumps(timer_event)}\n\n"
+                                    logger.info(f"⏱️ Timer started: {response_data.get('duration_minutes')} min")
+                                
+                                # Handle Citations (Buffer them)
+                                if response_data.get('citations'):
+                                    pending_citations.extend(response_data.get('citations'))
+                                    logger.info(f"📚 Citations buffered: {len(response_data.get('citations'))}")
+                                    
+                            except:
+                                pass
                         
                         elif hasattr(part, 'text') and part.text and event.partial:
                             content = part.text
+                            full_response += content  # Collect response
                             chunk_data = {
                                 'type': 'content',
                                 'content': content,
@@ -132,7 +182,17 @@ async def chat(request: ChatRequest):
                             }
                             yield f"data: {json.dumps(chunk_data)}\n\n"
             
+            # Send buffered citations at the end
+            if pending_citations:
+                citations_event = {
+                    'type': 'citations',
+                    'citations': pending_citations
+                }
+                yield f"data: {json.dumps(citations_event)}\n\n"
+                logger.info(f"📚 Sending {len(pending_citations)} citations to frontend")
+
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
 
         except Exception as e:
             logger.error(f"Error in streaming chat: {str(e)}")

@@ -13,14 +13,20 @@ def search_perplexity(query: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing the answer and citations
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     api_key = os.getenv("PERPLEXITY_API_KEY")
     if not api_key:
+        logger.error("❌ PERPLEXITY_API_KEY missing")
         return {"answer": "Error: PERPLEXITY_API_KEY not found in environment variables.", "citations": []}
 
     url = "https://api.perplexity.ai/chat/completions"
     
+    logger.info(f"🌐 Calling Perplexity API for query: {query}")
+    
     payload = {
-        "model": "llama-3.1-sonar-small-128k-online",
+        "model": "sonar",
         "messages": [
             {
                 "role": "system",
@@ -34,7 +40,6 @@ def search_perplexity(query: str) -> Dict[str, Any]:
         "temperature": 0.2,
         "top_p": 0.9,
         "return_citations": True,
-        "search_domain_filter": ["perplexity.ai"],
         "return_images": False,
         "return_related_questions": False,
         "search_recency_filter": "month",
@@ -57,11 +62,13 @@ def search_perplexity(query: str) -> Dict[str, Any]:
         content = data["choices"][0]["message"]["content"]
         citations = data.get("citations", [])
         
+        logger.info(f"✅ Perplexity success. Citations: {len(citations)}")
         return {
             "answer": content,
             "citations": citations
         }
     except Exception as e:
+        logger.error(f"❌ Perplexity API error: {str(e)}")
         return {
             "answer": f"Error performing search: {str(e)}",
             "citations": []

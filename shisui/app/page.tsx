@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ChatSection from './components/ChatSection';
+import Timer from './components/Timer';
 
 interface Message {
   role: 'user' | 'assistant' | 'tool-indicator' | 'agent-working';
@@ -13,10 +14,18 @@ interface Message {
   citations?: string[];
 }
 
+interface TimerData {
+  durationMinutes: number;
+  label: string;
+  message: string;
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<string | null>(null);
+  const [activeTimer, setActiveTimer] = useState<TimerData | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleSendMessage = async (text: string) => {
     // Add user message
@@ -28,7 +37,10 @@ export default function Home() {
       const response = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          session_id: sessionId
+        }),
       });
 
       if (!response.body) throw new Error('No response body');
@@ -37,7 +49,6 @@ export default function Home() {
       const decoder = new TextDecoder();
       let assistantMessage: Message = { role: 'assistant', content: '' };
       let buffer = '';
-      let sessionId = '';
       let currentAgentName: string | null = null;
       let currentAgentDisplay: string | null = null;
 
@@ -63,7 +74,9 @@ export default function Home() {
 
             switch (event.type) {
               case 'session':
-                sessionId = event.session_id;
+                if (!sessionId) {
+                  setSessionId(event.session_id);
+                }
                 break;
 
               case 'agent_working':
@@ -102,6 +115,25 @@ export default function Home() {
                 setCurrentAgent(null);
                 break;
 
+              case 'timer_start':
+                // Handle timer start event
+                setActiveTimer({
+                  durationMinutes: event.duration_minutes,
+                  label: event.label,
+                  message: event.message
+                });
+                break;
+
+              case 'citations':
+                // Handle citations event
+                assistantMessage.citations = event.citations;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = { ...assistantMessage };
+                  return newMessages;
+                });
+                break;
+
               case 'error':
                 console.error('Backend error:', event.error);
                 assistantMessage.content = `Error: ${event.error}`;
@@ -131,13 +163,24 @@ export default function Home() {
   };
 
   return (
-    <main>
+    <main className="relative">
       <ChatSection
         messages={messages}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
         currentAgent={currentAgent}
       />
+
+      {/* Timer Overlay */}
+      {activeTimer && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4">
+          <Timer
+            durationMinutes={activeTimer.durationMinutes}
+            label={activeTimer.label}
+            onComplete={() => setActiveTimer(null)}
+          />
+        </div>
+      )}
     </main>
   );
 }

@@ -97,12 +97,22 @@ const ChatSection: React.FC<ChatSectionProps> = ({
 
     if (!hasMessages) {
         return (
-            <div className="h-screen flex flex-col items-center justify-center relative bg-[#f9fafb]">
-                <div className="absolute top-6 left-6 flex items-center gap-3">
+            <div className="h-screen flex flex-col items-center justify-center relative bg-[#f9fafb] overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0 z-0">
+                    <img
+                        src="/welcome.png"
+                        alt=""
+                        className="w-full h-full object-cover opacity-15"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-[#f9fafb]/80"></div>
+                </div>
+
+                <div className="absolute top-6 left-6 flex items-center gap-3 z-10">
                     <img src="/Shisui_logo.svg" alt="Shisui Logo" className="w-8 h-8" />
                     <span className="text-xl font-bold text-gray-800">Shisui</span>
                 </div>
-                <div className="text-center mb-8">
+                <div className="text-center mb-8 z-10 relative">
                     <h1 className="text-4xl font-bold text-gray-800">{greeting}</h1>
                     <p className="text-gray-500 mt-2">Your personal learning assistant.</p>
                 </div>
