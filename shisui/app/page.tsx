@@ -100,14 +100,30 @@ export default function Home() {
 
               case 'content':
                 // Append content to assistant message
-                assistantMessage.content += event.content;
-                assistantMessage.agentName = event.agent_name || currentAgentName || undefined;
-                assistantMessage.agentDisplay = event.agent_display || currentAgentDisplay || undefined;
-
                 setMessages((prev) => {
                   const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = { ...assistantMessage };
-                  return newMessages;
+                  const lastMsg = newMessages[newMessages.length - 1];
+
+                  if (lastMsg && lastMsg.role === 'assistant') {
+                    // Update existing assistant message
+                    const updatedMsg = {
+                      ...lastMsg,
+                      content: lastMsg.content + event.content,
+                      agentName: event.agent_name || lastMsg.agentName,
+                      agentDisplay: event.agent_display || lastMsg.agentDisplay
+                    };
+                    newMessages[newMessages.length - 1] = updatedMsg;
+                    return newMessages;
+                  } else {
+                    // Create new assistant message (e.g. after tool call)
+                    const newMsg: Message = {
+                      role: 'assistant',
+                      content: event.content,
+                      agentName: event.agent_name || currentAgentName || undefined,
+                      agentDisplay: event.agent_display || currentAgentDisplay || undefined
+                    };
+                    return [...newMessages, newMsg];
+                  }
                 });
                 break;
 
