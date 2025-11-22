@@ -9,7 +9,25 @@ def generate_assessment(topic: str, difficulty: str = "medium", num_questions: i
     import json
     exam_tool = get_exam_tool()
     result = exam_tool(topic, difficulty, num_questions)
-    return json.dumps(result)
+    
+    # Check for errors
+    if "error" in result:
+        return f"❌ Failed to generate exam: {result['error']}"
+    
+    # Extract key information
+    pdf_url = result.get("pdf_url", "")
+    title = result.get("title", "Exam")
+    num_qs = len(result.get("questions", []))
+    
+    # Format user-friendly markdown message with clickable link
+    message = f"""✅ Exam generated successfully!
+
+📄 **[Download Your Exam]({pdf_url})**
+
+The exam contains {num_qs} questions on "{topic}" with {difficulty} difficulty.
+"""
+    
+    return message
 
 def evaluate_response(question: str, user_answer: str, correct_answer: str) -> str:
     """Evaluate a student's answer"""
@@ -28,6 +46,7 @@ exam_agent = Agent(
 1.  **Test Generation**: Create quizzes and tests based on studied material.
     -   Use `generate_assessment` when requested or after a study session.
     -   Tailor difficulty to the student's level.
+    -   **Always provide the download link** returned by the tool so students can access their exam PDF.
 2.  **Evaluation**: Grade answers and provide feedback.
     -   Use `evaluate_response` to check answers.
     -   Provide constructive feedback, explaining WHY an answer is right or wrong.
@@ -45,6 +64,7 @@ exam_agent = Agent(
 **Tool Usage:**
 -   Announce your action (e.g., "Generating a quiz on Calculus...").
 -   Present questions clearly.
+-   When an exam is generated, make sure to include the download link in your response.
 """,
     tools=[
         FunctionTool(generate_assessment),
