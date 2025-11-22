@@ -41,6 +41,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
-inspect_*.py
-debug_*.py
-*.txt
+# Text files (with exceptions for important files)
+!requirements.txt
+debug*.txt
+temp*.txt
+test*.txt

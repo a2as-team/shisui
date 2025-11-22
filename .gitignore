@@ -40,10 +40,11 @@ Thumbs.db
 *.log
 
 # Temporary/Debug files
-inspect_*.py
-debug_*.py
 *.tmp
 *.bak
+
+# Text files (with exceptions for important files)
+!requirements.txt
 
 # Specs (optional - uncomment if you want to exclude)
 # specs/
