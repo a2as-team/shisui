@@ -157,10 +157,15 @@ export default function Home() {
 
               case 'citations':
                 // Handle citations event
-                assistantMessage.citations = event.citations;
                 setMessages((prev) => {
                   const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = { ...assistantMessage };
+                  const lastMsg = newMessages[newMessages.length - 1];
+                  if (lastMsg) {
+                    newMessages[newMessages.length - 1] = {
+                      ...lastMsg,
+                      citations: event.citations
+                    };
+                  }
                   return newMessages;
                 });
                 break;

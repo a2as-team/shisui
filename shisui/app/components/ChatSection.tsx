@@ -103,9 +103,8 @@ const ChatSection: React.FC<ChatSectionProps> = ({
                     <img
                         src="/welcome.png"
                         alt=""
-                        className="w-full h-full object-cover opacity-15"
+                        className="w-full h-full object-cover opacity-30"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-[#f9fafb]/80"></div>
                 </div>
 
                 <div className="absolute top-6 left-6 flex items-center gap-3 z-10">
