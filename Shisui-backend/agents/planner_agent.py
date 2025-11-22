@@ -4,6 +4,8 @@ from agents.course_agent import course_agent
 from agents.exam_agent import exam_agent
 from tools.search_tool import get_search_tool
 from tools.database_tool import get_database_tool
+from config.model_config import gemini_flash_model
+
 
 def search_general(query: str) -> str:
     """General web search for planning and coordination"""
@@ -21,7 +23,7 @@ def get_history(session_id: str) -> str:
 
 planner_agent = Agent(
     name="planner_agent",
-    model="gemini-1.5-flash",
+    model=gemini_flash_model,
     description="Main Shisui coordinator that manages the student's learning journey",
     instruction="""You are the Planner Agent, the main interface for the Shisui Learning Assistant.
 

@@ -13,3 +13,4 @@ scikit-learn
 numpy
 markdown2
 reportlab
+litellm

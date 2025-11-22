@@ -2,6 +2,8 @@ from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from tools.search_tool import get_search_tool
 from tools.timer_tool import get_timer_tool
+from config.model_config import gemini_flash_model
+
 
 def search_course_material(query: str) -> str:
     """Search for course materials and study resources"""
@@ -19,7 +21,7 @@ def set_study_timer(minutes: int, topic: str) -> str:
 
 course_agent = Agent(
     name="course_agent",
-    model="gemini-1.5-flash",
+    model=gemini_flash_model,
     description="Specialist agent for researching course materials and managing study sessions",
     instruction="""You are the Course Agent, a specialist in finding study materials and managing study time.
 

@@ -1,6 +1,8 @@
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
 from tools.exam_tool import get_exam_tool, get_eval_tool
+from config.model_config import gemini_flash_model
+
 
 def generate_assessment(topic: str, difficulty: str = "medium", num_questions: int = 5) -> str:
     """Generate a test/assessment for a topic"""
@@ -18,7 +20,7 @@ def evaluate_response(question: str, user_answer: str, correct_answer: str) -> s
 
 exam_agent = Agent(
     name="exam_agent",
-    model="gemini-1.5-flash",
+    model=gemini_flash_model,
     description="Specialist agent for generating tests and evaluating student knowledge",
     instruction="""You are the Exam Agent, responsible for assessing student understanding.
 
