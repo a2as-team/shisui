@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌸 Shisui
+# Shisui
 
 ### Your Intelligent Learning Companion
 
@@ -16,17 +16,17 @@
 
 ---
 
-## 🎯 What is Shisui?
+## What is Shisui?
 
 **Shisui** is an advanced AI-powered learning assistant that helps students master any subject through intelligent research, guided study sessions, and adaptive testing. Built on a sophisticated multi-agent architecture, Shisui orchestrates specialized AI agents to provide a comprehensive learning experience.
 
-### ✨ Key Features
+### Key Features
 
 <table>
 <tr>
 <td width="50%">
 
-#### 🔍 **Smart Research**
+#### **Smart Research**
 - Web-powered topic exploration
 - Curated learning materials
 - Citation-backed answers
@@ -35,39 +35,52 @@
 </td>
 <td width="50%">
 
-#### ⏱️ **Study Timer**
-- Focused study sessions
-- Pomodoro-style breaks
-- Progress tracking
-- Distraction-free learning
+#### **Study Planning**
+- AI-generated study schedules
+- Time-blocked learning sessions
+- Task breakdown & prioritization
+- Adaptive pacing
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-#### 📝 **Adaptive Testing**
+#### **Study Timer**
+- Focused study sessions
+- Pomodoro-style breaks
+- Progress tracking
+- Distraction-free learning
+
+</td>
+<td width="50%">
+
+#### **Adaptive Testing**
 - AI-generated quizzes
 - Instant feedback
 - PDF exam exports
 - Performance analytics
 
 </td>
+</tr>
+<tr>
 <td width="50%">
 
-#### 🧠 **Learning History**
+#### **Learning History**
 - Session tracking
 - Progress monitoring
 - Study pattern analysis
 - Personalized recommendations
 
 </td>
+<td width="50%">
+</td>
 </tr>
 </table>
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 Shisui uses **Agent-to-Agent (A2A)** communication powered by Google's ADK framework:
 
@@ -84,17 +97,17 @@ graph TD
     B -->|History| I[SQLite Database]
 ```
 
-### 🤖 Specialized Agents
+### Specialized Agents
 
 | Agent | Role | Tools |
 |-------|------|-------|
-| **Planner Agent** | Main coordinator & router | Web Search, History Retrieval |
-| **Course Agent** | Research & study management | Perplexity Search, Study Timer |
-| **Exam Agent** | Test generation & evaluation | Gemini API, PDF Generator |
+| **Planner Agent** | Main coordinator & intelligent router | General Search, History Retrieval, Agent Delegation |
+| **Course Agent** | Research & study management | Perplexity Search, Study Timer, Schedule Generator |
+| **Exam Agent** | Test generation & evaluation | Gemini API, PDF Generator, Answer Evaluator |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -147,7 +160,7 @@ The frontend will start on `http://localhost:3000`
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **FastAPI** - High-performance async API framework
@@ -167,7 +180,7 @@ The frontend will start on `http://localhost:3000`
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 shisui/
@@ -198,9 +211,9 @@ shisui/
 
 ---
 
-## 🎨 Features in Detail
+## Features in Detail
 
-### 💬 Intelligent Chat Interface
+### Intelligent Chat Interface
 
 - **Streaming responses** for real-time feedback
 - **Agent transparency** - see which specialist is working
@@ -208,14 +221,14 @@ shisui/
 - **Citation support** - all research is source-backed
 - **Markdown rendering** - rich formatted responses
 
-### 📊 Study Session Management
+### Study Session Management
 
 - Set custom study timers
 - Track learning sessions
 - Review past interactions
 - Monitor progress over time
 
-### 🎓 Adaptive Testing
+### Adaptive Testing
 
 - Generate custom quizzes on any topic
 - Multiple-choice format with explanations
@@ -225,7 +238,7 @@ shisui/
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend (`.env`)
 
@@ -243,7 +256,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ---
 
-## 📝 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -253,13 +266,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
@@ -267,7 +280,7 @@ This project is licensed under the MIT License.
 
 <div align="center">
 
-### Built with ❤️ using Google ADK
+### Built with Google ADK
 
 **Shisui** - Making learning intelligent, one conversation at a time.
 
