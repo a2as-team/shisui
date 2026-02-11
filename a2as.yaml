@@ -1,0 +1,269 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: victorbash400/shisui
+    source: https://github.com/victorbash400/shisui
+    branch: main
+    commit: "328bd62a"
+    scope: [Shisui-backend/agents/course_agent.py, Shisui-backend/agents/exam_agent.py, Shisui-backend/agents/planner_agent.py,
+      Shisui-backend/config/__init__.py, Shisui-backend/config/model_config.py, Shisui-backend/main.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T16:58:19Z'
+    url: https://a2as.org/certified/agents/victorbash400/shisui
+  signatures:
+    digest: sha256:1aLwb3PuP4xt-4chdLOyX6uXijN8JQ9bZfmrh8-nfEw
+    key: ed25519:II4Pi_uy6rk77B1vTd8OgddPED8E1hzACbhhtM8EKgA
+    sig: ed25519:jENLb2WOdadZcgLjRaE0vbCKcN8Qm4EMCX1SJ5WY4GCrlteFihDsdWcZeOZ5dILLkEezwvxKZGA5iL1i0vKoCw
+
+agents:
+  course_agent:
+    type: instance
+    models: [gemini_flash_model]
+    tools: [search_course_material, set_study_timer, create_schedule]
+    params:
+      name: course_agent
+      description: Specialist agent for researching course materials and managing study sessions
+      instruction: ['You are the Course Agent, a specialist in finding study materials and managing study time.', '**Your
+          Capabilities:**', '1.  **Research**: Find high-quality, relevant study materials using the web search tool.', '-   When
+          asked about a topic, use `search_course_material`.', '-   Always provide citations from the search results.', '2.  **Time
+          Management**: Help students manage their study sessions.', '-   When asked to set a timer or start studying, use
+          `set_study_timer`.', '-   When asked to create a schedule or plan a study day, use `create_schedule`.', '-   Encourage
+          focused study blocks (e.g., Pomodoro).', '**What You CANNOT Do:**', '-   Generate quizzes or tests (Exam Agent handles
+          this)', '-   Evaluate or grade answers (Exam Agent handles this)', '-   Access student history or general planning
+          (Planner Agent handles this)', '**Important - Transfer Back:**', '-   If asked to do something outside your capabilities,
+          politely explain what you cannot do and use `transfer_back` to return control to the Planner Agent.', '-   Example:
+          "I can generate quizzes and evaluate your responses, but I can''t set timers. Let me transfer you back to the planner
+          to help with that."', '**Tool Usage:**', '-   Announce your action before using a tool (e.g., "I''ll search for
+          materials on quantum physics...").', '-   Return structured results to the Planner Agent.', '-   **IMPORTANT**:
+          Do NOT manually list sources or citations in your response - they are automatically added to the UI.']
+  exam_agent:
+    type: instance
+    models: [gemini_flash_model]
+    tools: [generate_assessment, evaluate_response]
+    params:
+      name: exam_agent
+      description: Specialist agent for generating tests and evaluating student knowledge
+      instruction: ['You are the Exam Agent, responsible for assessing student understanding.', '**Your Capabilities:**',
+        '1.  **Test Generation**: Create quizzes and tests based on studied material.', '-   Use `generate_assessment` when
+          requested or after a study session.', '-   Tailor difficulty to the student''s level.', '-   **Always provide the
+          download link** returned by the tool so students can access their exam PDF.', '2.  **Evaluation**: Grade answers
+          and provide feedback.', '-   Use `evaluate_response` to check answers.', '-   Provide constructive feedback, explaining
+          WHY an answer is right or wrong.', '**What You CANNOT Do:**', '-   Set study timers (Course Agent handles this)',
+        '-   Search for study materials or resources (Course Agent handles this)', '-   Create study schedules (Course Agent
+          handles this)', '-   Access student history or general planning (Planner Agent handles this)', '**Important - Transfer
+          Back:**', '-   If asked to do something outside your capabilities, politely explain what you cannot do and use `transfer_back`
+          to return control to the Planner Agent.', '-   Example: "I can''t set timers, but I can help test your knowledge.
+          Let me transfer you back to the planner to set up a timer for you."', '**Tool Usage:**', '-   Announce your action
+          (e.g., "Generating a quiz on Calculus...").', '-   Present questions clearly.', '-   When an exam is generated,
+          make sure to include the download link in your response.']
+  planner_agent:
+    type: instance
+    models: [gemini_flash_model]
+    tools: [search_general, get_history]
+    params:
+      name: planner_agent
+      description: Main Shisui coordinator that manages the student's learning journey
+      instruction: ['You are the Planner Agent, the main interface for the Shisui Learning Assistant.', '**Your Role:**',
+        Coordinate the student's learning process by delegating to specialized agents or handling general queries yourself.,
+        '**Specialist Agents:**', '1.  **Course Agent**:', '-   **Capabilities**: Finding study materials, researching topics,
+          setting study timers, **creating study schedules**.', '-   **Triggers**:', '-   "Find info on..." -> Research',
+        '-   "I want to study..." -> Timer/Schedule', '-   "Set a timer for..." -> Timer', '-   "Create a schedule for...",
+          "Plan my study day..." -> Schedule', '2.  **Exam Agent**:', '-   **Capabilities**: Testing knowledge, generating
+          quizzes, grading answers.', '-   **Triggers**: "Test me on...", "Give me a quiz", "Did I get this right?"', '**Your
+          Responsibilities:**', '-   **Routing**: Analyze the user''s request and transfer to the appropriate specialist.',
+        '-   **CRITICAL**: If the user asks for a schedule or plan, DELEGATE to the Course Agent. Do NOT search for "how to
+          make a schedule".', '-   Announce the transfer (e.g., "I''ll ask the Course Agent to create a schedule for you.").',
+        '-   **General Help**: Answer general questions about the system or study planning directly.', '-   Use `search_general`
+          ONLY for general planning advice, not for specific study tasks that agents can handle.', '-   **IMPORTANT**: Do
+          NOT manually list sources or citations in your response - they are automatically added to the UI.', '-   **Workflow
+          Management**: Guide the student from Research -> Study -> Test.', '-   **Multi-Tool Orchestration**: You can make
+          MULTIPLE tool calls in a single turn if needed.', '-   Example: If a user asks "Find info on quantum physics and
+          set a timer", you can delegate to Course Agent for both tasks.', '-   Complex requests may require coordinating
+          multiple agents or using multiple tools.', '**Delegation Rules:**', '-   ALWAYS announce which agent you are calling
+          and why.', '-   Pass the full context of the user''s request.', '-   When specialist agents transfer back to you,
+          handle the request appropriately by routing to the correct agent or handling it yourself.']
+      sub_agents: [course_agent, exam_agent]
+
+models:
+  gemini_flash_model:
+    type: literal
+    agents: [course_agent, planner_agent, exam_agent]
+
+tools:
+  create_schedule:
+    type: wrapper
+    agents: [course_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: create_schedule
+      description: Create a study schedule with a list of tasks (time and activity)
+  evaluate_response:
+    type: wrapper
+    agents: [exam_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: evaluate_response
+      description: Evaluate a student's answer
+  generate_assessment:
+    type: wrapper
+    agents: [exam_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: generate_assessment
+      description: Generate a test/assessment for a topic
+  get_history:
+    type: wrapper
+    agents: [planner_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: get_history
+      description: Get recent student history
+  search_course_material:
+    type: wrapper
+    agents: [course_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: search_course_material
+      description: Search for course materials and study resources
+  search_general:
+    type: wrapper
+    agents: [planner_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: search_general
+      description: General web search for planning and coordination
+  set_study_timer:
+    type: wrapper
+    agents: [course_agent]
+    params:
+      wrapper: FunctionTool
+      wraps: set_study_timer
+      description: Set a study timer for a specific topic
+
+teams:
+  planner_agent:
+    type: hierarchy
+    agents: [planner_agent, course_agent, exam_agent]
+
+imports:
+  Agent: google.adk.agents.Agent
+  BaseModel: pydantic.BaseModel
+  claude_model: model_config.claude_model
+  Content: google.genai.types.Content
+  CORSMiddleware: fastapi.middleware.cors.CORSMiddleware
+  course_agent: agents.course_agent.course_agent
+  exam_agent: agents.exam_agent.exam_agent
+  FastAPI: fastapi.FastAPI
+  FunctionTool: google.adk.tools.FunctionTool
+  gemini_flash_model: config.model_config.gemini_flash_model
+  get_database_tool: tools.database_tool.get_database_tool
+  get_eval_tool: tools.exam_tool.get_eval_tool
+  get_exam_tool: tools.exam_tool.get_exam_tool
+  get_model_by_alias: model_config.get_model_by_alias
+  get_openrouter_model: model_config.get_openrouter_model
+  get_schedule_tool: tools.schedule_tool.get_schedule_tool
+  get_search_tool: tools.search_tool.get_search_tool
+  get_timer_tool: tools.timer_tool.get_timer_tool
+  gpt4_model: model_config.gpt4_model
+  HTTPException: fastapi.HTTPException
+  init_db: tools.database_tool.init_db
+  InMemorySessionService: google.adk.sessions.InMemorySessionService
+  json: json
+  LiteLlm: google.adk.models.lite_llm.LiteLlm
+  load_dotenv: dotenv.load_dotenv
+  log_interaction: tools.database_tool.log_interaction
+  logging: logging
+  MODELS: model_config.MODELS
+  Optional: typing.Optional
+  os: os
+  Part: google.genai.types.Part
+  planner_agent: agents.planner_agent.planner_agent
+  RunConfig: google.adk.agents.run_config.RunConfig
+  Runner: google.adk.runners.Runner
+  StaticFiles: fastapi.staticfiles.StaticFiles
+  StreamingMode: google.adk.agents.run_config.StreamingMode
+  StreamingResponse: fastapi.responses.StreamingResponse
+  uuid: uuid
+  uvicorn: uvicorn
+
+functions:
+  chat:
+    type: async
+    module: Shisui-backend.main
+    args: [request]
+  create_schedule:
+    type: sync
+    module: Shisui-backend.agents.course_agent
+    args: [tasks]
+    params:
+      returns: str
+  evaluate_response:
+    type: sync
+    module: Shisui-backend.agents.exam_agent
+    args: [question, user_answer, correct_answer]
+    params:
+      returns: str
+  generate_assessment:
+    type: sync
+    module: Shisui-backend.agents.exam_agent
+    args: [topic, difficulty, num_questions]
+    params:
+      returns: str
+  generate_stream:
+    type: async
+    module: Shisui-backend.main
+  get_history:
+    type: sync
+    module: Shisui-backend.agents.planner_agent
+    args: [session_id]
+    params:
+      returns: str
+  get_model_by_alias:
+    type: sync
+    module: Shisui-backend.config.model_config
+    args: [alias]
+    params:
+      returns: LiteLlm
+  get_openrouter_model:
+    type: sync
+    module: Shisui-backend.config.model_config
+    args: [model_name]
+    params:
+      returns: LiteLlm
+  root:
+    type: async
+    module: Shisui-backend.main
+  search_course_material:
+    type: sync
+    module: Shisui-backend.agents.course_agent
+    args: [query]
+    params:
+      returns: str
+  search_general:
+    type: sync
+    module: Shisui-backend.agents.planner_agent
+    args: [query]
+    params:
+      returns: str
+  set_study_timer:
+    type: sync
+    module: Shisui-backend.agents.course_agent
+    args: [minutes, topic]
+    params:
+      returns: str
+
+variables:
+  OPENROUTER_API_KEY:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [Shisui-backend.config.model_config]
+
+files:
+  REPORTS_DIR:
+    type: variable
+    actions: [read]
+    params:
+      caller: [os.makedirs]
